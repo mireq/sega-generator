@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "generator.h"
-
-#include <iostream>
+#include "qt/QtGeneratorWindow.h"
 
 int ui_musicfile = -1;
 
 QApplication *app = 0;
-QMainWindow *win = 0;
+QtGeneratorWindow *win = 0;
 
 extern "C"
 {
+
+#include "generator.h"
 
 void ui_err(const char *text, ...)
 {
@@ -25,6 +25,7 @@ void ui_err(const char *text, ...)
 
 void ui_line(int line)
 {
+	win->uiLine(line);
 }
 
 void ui_endfield()
@@ -47,7 +48,7 @@ int ui_loop(void)
 int ui_init(int argc, char *argv[])
 {
 	app = new QApplication(argc, argv);
-	win = new QMainWindow();
+	win = new QtGeneratorWindow();
 	win->show();
 	return 0;
 }

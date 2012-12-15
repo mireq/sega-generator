@@ -29,6 +29,12 @@ set (GENERATOR_QT_SOURCES
 	dib.c
 	avi.c
 	diss68k.c
+	qt/QtGeneratorWindow.cpp
+	qt/QtGeneratorWindow.h
+	qt/QtXvControlsWidget.cpp
+	qt/QtXvControlsWidget.h
+	qt/QtXvWidget.cpp
+	qt/QtXvWidget.h
 )
 
 if (ENABLE_RAZE)
@@ -47,8 +53,9 @@ else (USE_SDL_AUDIO)
 endif (USE_SDL_AUDIO)
 
 if (ENABLE_QT)
+	qt4_wrap_cpp(MOC_SOURCES qt/QtGeneratorWindow.h qt/QtXvControlsWidget.h qt/QtXvWidget.h)
 	include_directories(${QT_INCLUDES} ${SOUND_INCLUDES})
-	add_executable(generator-qt ${GENERATOR_QT_SOURCES})
+	add_executable(generator-qt ${GENERATOR_QT_SOURCES} ${MOC_SOURCES})
 	target_link_libraries(generator-qt
 		${Z80_LIB}
 		${SOUND_LIBS}
@@ -56,5 +63,7 @@ if (ENABLE_QT)
 		${CMAKE_BINARY_DIR}/sn76496/libsn76496.a
 		${CMAKE_BINARY_DIR}/ym2612/libym6212.a
 		${QT_LIBRARIES}
+		X11
+		Xv
 	)
 endif (ENABLE_QT)
