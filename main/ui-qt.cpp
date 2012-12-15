@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include "qt/QtGeneratorWindow.h"
 
-int ui_musicfile = -1;
-
 QApplication *app = 0;
 QtGeneratorWindow *win = 0;
 
@@ -30,6 +28,7 @@ void ui_line(int line)
 
 void ui_endfield()
 {
+	win->uiEndField();
 }
 
 void ui_final(void)
@@ -50,14 +49,12 @@ int ui_init(int argc, char *argv[])
 	app = new QApplication(argc, argv);
 	win = new QtGeneratorWindow();
 	win->show();
-	return 0;
+	return win->uiInit(argc, argv);
 }
 
 void ui_musiclog(uint8 *data, unsigned int length)
 {
-	if (ui_musicfile != -1) {
-		write(ui_musicfile, data, length);
-	}
+	win->uiMusiclog(data, length);
 }
 
 }

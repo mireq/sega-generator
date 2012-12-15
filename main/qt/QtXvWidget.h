@@ -7,7 +7,9 @@
 #include <QVariant>
 #include <QVideoFrame>
 #include <QWidget>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QX11Info>
+#endif
 #include <QtDesigner/QDesignerExportWidget>
 
 
@@ -28,9 +30,9 @@ public:
 		unsigned long numPorts;
 		char type;
 	};
-	struct PixelFormat {
-		PixelFormat() {};
-		PixelFormat(int id, const QVideoFrame::PixelFormat &format): id(id), format(format) {};
+	struct PixelFormatInfo {
+		PixelFormatInfo() {};
+		PixelFormatInfo(int id, const QVideoFrame::PixelFormat &format): id(id), format(format) {};
 		int id;
 		QVideoFrame::PixelFormat format;
 		QString name() const;
@@ -48,45 +50,49 @@ public:
 		AttributeFlags flags;
 	};
 	typedef QList<AdaptorInfo> AdaptorList;
-	typedef QList<PixelFormat> FormatList;
+	typedef QList<PixelFormatInfo> PixelFormatList;
 	typedef QList<AttributeInfo> AttributeList;
 
 	QtXvWidget(QWidget *parent = 0);
 	~QtXvWidget();
 
 	AdaptorList adaptors() const;
-	FormatList formats() const;
+	PixelFormatList formats() const;
 	AttributeList xvAttributes() const;
 
-	void setAdaptor(XvPortID baseId);
+	bool isInitialized() const;
+
+	bool setAdaptor(XvPortID baseId);
+	bool setAdaptor(const AdaptorInfo &adaptor);
+
 	int format() const;
-	void setFormat(int formatId);
+	bool setFormat(int formatId);
 	QVideoFrame::PixelFormat pixelFormat() const;
-	XvPortID port() const;
+	bool setPixelFormat(QVideoFrame::PixelFormat format);
+
 	void setXvAttribute(const QString &attribute, int value);
 	int getXvAttribute(const QString &attribute) const;
+
 	bool present(const QVideoFrame &frame);
 
 signals:
-	void portChanged(XvPortID port);
+	void initializedChanged();
+
+protected:
+	bool event(QEvent *event);
 
 private:
 	Display *getDpy() const;
 	bool hasXvExtension() const;
-	void freeXvImage();
 	void ungrabPort();
 	void updateFormats();
-	void setFormat(const PixelFormat &format);
+	void setFormat(const PixelFormatInfo &format);
 	void clearFormat();
 
 private:
-	bool m_xvInitialized;
 	XvPortID m_port;
 	int m_format;
-	QVideoFrame::PixelFormat m_pixelFormat;
-	XvImage *m_xvImage;
-	FormatList m_formats;
-	GC m_gc;
+	PixelFormatList m_formats;
 	QVideoFrame m_frame;
 };
 
