@@ -16,14 +16,20 @@
        register uint32 *reg68k_regs asm ("6");
        register t_sr reg68k_sr asm ("7");
 #  else
-#    ifdef PROCESSOR_INTEL
+#    ifdef PROCESSOR_i386
          register uint32 reg68k_pc asm ("%ebx");
          register uint32 *reg68k_regs asm ("%edi");
          register t_sr reg68k_sr asm ("%esi");
 #    else
-         extern uint32 reg68k_pc;
-         extern uint32 *reg68k_regs;
-         extern t_sr reg68k_sr;
+#        ifdef PROCESSOR_x86_64
+             register uint32 reg68k_pc asm ("%rbx");
+             register uint32 *reg68k_regs asm ("%r14");
+             register t_sr reg68k_sr asm ("%r15");
+#        else
+             extern uint32 reg68k_pc;
+             extern uint32 *reg68k_regs;
+             extern t_sr reg68k_sr;
+#        endif
 #    endif
 #  endif
 #endif

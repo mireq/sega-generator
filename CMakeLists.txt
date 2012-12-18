@@ -3,6 +3,8 @@ project(Generator C CXX)
 cmake_minimum_required(VERSION 2.6)
 cmake_policy(SET CMP0003 NEW)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 include_directories(
 	"${PROJECT_BINARY_DIR}"
 	"${CMAKE_CURRENT_SOURCE_DIR}"
@@ -21,6 +23,22 @@ check_type_size("unsigned short" SIZEOF_UNSIGNED_SHORT)
 check_type_size("unsigned int" SIZEOF_UNSIGNED_INT)
 check_type_size("unsigned long" SIZEOF_UNSIGNED_LONG)
 check_type_size("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
+
+include (TargetArch)
+target_architecture(CMAKE_ARCH)
+if (${CMAKE_ARCH} STREQUAL "arm")
+	set(PROCESSOR_ARM 1)
+endif (${CMAKE_ARCH} STREQUAL "arm")
+if (${CMAKE_ARCH} STREQUAL "i386")
+	set(PROCESSOR_i386 1)
+endif (${CMAKE_ARCH} STREQUAL "i386")
+if (${CMAKE_ARCH} STREQUAL "x86_64")
+	set(PROCESSOR_x86_64 1)
+endif (${CMAKE_ARCH} STREQUAL "x86_64")
+if (${CMAKE_ARCH} STREQUAL "sparc")
+	set(PROCESSOR_SPARC 1)
+endif (${CMAKE_ARCH} STREQUAL "sparc")
+
 
 if (ENABLE_QT)
 	find_package(Qt4 4.7 COMPONENTS QtCore QtGui QtMultimedia REQUIRED)
