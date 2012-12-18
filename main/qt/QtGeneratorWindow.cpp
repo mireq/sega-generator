@@ -101,7 +101,7 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	hborder(HBORDER_DEFAULT),
 	vborder(VBORDER_DEFAULT)
 {
-	xv->setAdaptor(xv->adaptors().last());
+	xv->setAdaptor(xv->adaptors().first());
 	xv->setMinimumSize(320, 240);
 	if (!xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
 		if (!xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
@@ -180,8 +180,14 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	return 0;
 }
 
+int frm = 0;
 void QtGeneratorWindow::uiEndField()
 {
+	frm++;
+	if (frm == 1000) {
+		emulator->stop();
+		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
+	}
 	static int counter = 0, frames = 0, waitstates;
 	static struct timeval tv0;
 	struct timeval tv;
@@ -307,11 +313,13 @@ void QtGeneratorWindow::uiLine(int line)
 	uint8 bg = vdp_reg[7] & 63;
 	uiplot_checkpalcache(0);
 
+	/*
 	uint32 bgpix;
 	uint32 bgpix1, bgpix2;
 	bgpix = uiplot_palcache_yuv[bg];
 	YVYU_SINGLE(bgpix, bgpix1, bgpix2);
-	uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
+	*/
+	//uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
 
 	if (line < 0 || line >= (int)vdp_vislines) {
 		uint32 bg;
@@ -336,12 +344,14 @@ void QtGeneratorWindow::uiLine(int line)
 	}
 
 	uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
+	/*
 	for (int i = 0; i < offset; i += 2) {
 		reinterpret_cast<uint16 *>(location)[i] = bgpix1;
 		reinterpret_cast<uint16 *>(location)[i + 1] = bgpix2;
 		reinterpret_cast<uint16 *>(location)[i + offset + width] = bgpix1;
 		reinterpret_cast<uint16 *>(location)[i + 1 + offset + width] = bgpix2;
 	}
+	*/
 }
 
 void QtGeneratorWindow::uiUsage()
