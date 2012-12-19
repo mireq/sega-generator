@@ -102,7 +102,7 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	vborder(VBORDER_DEFAULT)
 {
 	xv->setAdaptor(xv->adaptors().first());
-	xv->setMinimumSize(320, 240);
+	xv->setMinimumSize(HMAXSIZE, VMAXSIZE);
 	if (!xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
 		if (!xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
 			fprintf(stderr, "No supported xv device found");
@@ -313,14 +313,6 @@ void QtGeneratorWindow::uiLine(int line)
 	uint8 bg = vdp_reg[7] & 63;
 	uiplot_checkpalcache(0);
 
-	/*
-	uint32 bgpix;
-	uint32 bgpix1, bgpix2;
-	bgpix = uiplot_palcache_yuv[bg];
-	YVYU_SINGLE(bgpix, bgpix1, bgpix2);
-	*/
-	//uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
-
 	if (line < 0 || line >= (int)vdp_vislines) {
 		uint32 bg;
 		uint32 *p = reinterpret_cast<uint32 *>(location);
@@ -344,14 +336,6 @@ void QtGeneratorWindow::uiLine(int line)
 	}
 
 	uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
-	/*
-	for (int i = 0; i < offset; i += 2) {
-		reinterpret_cast<uint16 *>(location)[i] = bgpix1;
-		reinterpret_cast<uint16 *>(location)[i + 1] = bgpix2;
-		reinterpret_cast<uint16 *>(location)[i + offset + width] = bgpix1;
-		reinterpret_cast<uint16 *>(location)[i + 1 + offset + width] = bgpix2;
-	}
-	*/
 }
 
 void QtGeneratorWindow::uiUsage()
