@@ -40,6 +40,7 @@ Q_OBJECT
 public:
 	QtGeneratorWindow(QWidget *parent = 0);
 	~QtGeneratorWindow();
+	void createMenu();
 	int uiInit(int argc, char *argv[]);
 	void uiEndField();
 	void uiNewFrame();

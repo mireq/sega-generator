@@ -1,4 +1,6 @@
 #include <QApplication>
+#include <QMenu>
+#include <QMenuBar>
 #include <QTimer>
 #include <sys/time.h>
 #include "QtGeneratorWindow.h"
@@ -113,12 +115,22 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 		frame.map(QAbstractVideoBuffer::ReadWrite);
 	}
 	setCentralWidget(xv);
+	createMenu();
 }
 
 QtGeneratorWindow::~QtGeneratorWindow()
 {
 	emulator->stop();
 	emulator->wait();
+}
+
+void QtGeneratorWindow::createMenu()
+{
+	QMenuBar *bar = menuBar();
+	QMenu *fileMenu = new QMenu("&File", this);
+	bar->addMenu(fileMenu);
+	QMenu *emulationMenu = new QMenu("&Emulation", this);
+	bar->addMenu(emulationMenu);
 }
 
 int QtGeneratorWindow::uiInit(int argc, char *argv[])
