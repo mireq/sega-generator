@@ -21,14 +21,15 @@ Q_OBJECT
 public:
 	Emulator(QtGeneratorWindow *parent = 0);
 	~Emulator();
-	void stop();
 	void loadImage(const char *image);
 
 protected:
 	void run();
 
+private slots:
+	void renderFrame();
+
 private:
-	bool stopEmul;
 	QtGeneratorWindow *win;
 	const char *image;
 }; /* -----  end of class Emulator  ----- */

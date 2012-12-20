@@ -58,7 +58,6 @@ static int sound_active;
 
 Emulator::Emulator(QtGeneratorWindow *parent):
 	QThread(parent),
-	stopEmul(false),
 	win(parent),
 	image(0)
 {
@@ -68,11 +67,6 @@ Emulator::~Emulator()
 {
 }
 
-void Emulator::stop()
-{
-	stopEmul = true;
-}
-
 void Emulator::loadImage(const char *image)
 {
 	this->image = image;
@@ -80,19 +74,26 @@ void Emulator::loadImage(const char *image)
 
 void Emulator::run()
 {
-	gen_loadmemrom(initcart, initcart_len);
-	while (!stopEmul) {
-		if (image) {
-			char *error = gen_loadimage(image);
-			if (error) {
-				fprintf(stderr, "%s\n", error);
-				gen_loadmemrom(initcart, initcart_len);
-			}
-			image = 0;
-		}
-		win->uiNewFrame();
-		event_doframe();
+	if (!image) {
+		gen_loadmemrom(initcart, initcart_len);
 	}
+	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
+	exec();
+}
+
+void Emulator::renderFrame()
+{
+	if (image) {
+		char *error = gen_loadimage(image);
+		if (error) {
+			fprintf(stderr, "%s\n", error);
+			gen_loadmemrom(initcart, initcart_len);
+		}
+		image = 0;
+	}
+	win->uiNewFrame();
+	event_doframe();
+	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
 }
 
 
@@ -120,7 +121,7 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 
 QtGeneratorWindow::~QtGeneratorWindow()
 {
-	emulator->stop();
+	emulator->quit();
 	emulator->wait();
 }
 
@@ -197,7 +198,6 @@ void QtGeneratorWindow::uiEndField()
 {
 	frm++;
 	if (frm == 1000) {
-		emulator->stop();
 		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
 	}
 	static int counter = 0, frames = 0, waitstates;
@@ -209,7 +209,7 @@ void QtGeneratorWindow::uiEndField()
 	gettimeofday(&tv, NULL);
 
 	if (ui_plotfield) {
-		QMetaObject::invokeMethod(this, "presentFrame", Qt::BlockingQueuedConnection);
+		presentFrame();
 	}
 
 	if (ui_frameskip == 0) {
