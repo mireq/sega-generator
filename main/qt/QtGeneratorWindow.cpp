@@ -211,6 +211,10 @@ void QtGeneratorWindow::uiEndField()
 	gettimeofday(&tv, NULL);
 
 	if (ui_plotfield) {
+		unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
+		unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
+		xv->setBorder(vborder, HMAXSIZE - width - offset, VMAXSIZE - vdp_vislines - vborder, offset);
+		xv->setMinimumSize(width, vdp_vislines);
 		presentFrame();
 	}
 

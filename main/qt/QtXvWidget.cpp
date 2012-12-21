@@ -125,6 +125,10 @@ QString QtXvWidget::PixelFormatInfo::name() const
 
 QtXvWidget::QtXvWidget(QWidget *parent):
 	QWidget(parent),
+	m_topBorder(0),
+	m_rightBorder(0),
+	m_bottomBorder(0),
+	m_leftBorder(0),
 	m_port(0),
 	m_format(0)
 {
@@ -163,6 +167,7 @@ QtXvWidget::AdaptorList QtXvWidget::adaptors() const
 			list.append(info);
 		}
 	}
+	XFree(adaptorInfo);
 
 	return list;
 }
@@ -236,6 +241,14 @@ bool QtXvWidget::setAdaptor(const AdaptorInfo &adaptor)
 	return false;
 }
 
+void QtXvWidget::setBorder(int top, int right, int bottom, int left)
+{
+	m_topBorder = top;
+	m_rightBorder = right;
+	m_bottomBorder = bottom;
+	m_leftBorder = left;
+}
+
 int QtXvWidget::format() const
 {
 	return m_format;
@@ -275,6 +288,50 @@ bool QtXvWidget::setPixelFormat(QVideoFrame::PixelFormat format)
 	return false;
 }
 
+QtXvWidget::FormatInfo QtXvWidget::formatInfo() const
+{
+	FormatInfo inf;
+	inf.pixelFormat = QVideoFrame::Format_Invalid;
+	if (!isInitialized()) {
+		return inf;
+	}
+
+	int count;
+	XvImageFormatValues *formats = XvListImageFormats(getDpy(), m_port, &count);
+	if (formats) {
+		for (int i = 0; i < count; ++i) {
+			if (formats[i].id != m_format) {
+				continue;
+			}
+			XvImageFormatValues format = formats[i];
+
+			inf.pixelFormat = pixelFormat();
+
+			inf.bitsPerPixel = format.bits_per_pixel;
+			inf.format = format.format;
+			inf.numPlanes = format.num_planes;
+
+			inf.redMask = format.red_mask;
+			inf.greenMask = format.green_mask;
+			inf.blueMask = format.blue_mask;
+
+			inf.ySampleBits = format.y_sample_bits;
+			inf.uSampleBits = format.u_sample_bits;
+			inf.vSampleBits = format.v_sample_bits;
+			inf.horzYPeriod = format.horz_y_period;
+			inf.horzUPeriod = format.horz_u_period;
+			inf.horzVPeriod = format.horz_v_period;
+			inf.vertYPeriod = format.vert_y_period;
+			inf.vertUPeriod = format.vert_u_period;
+			inf.vertVPeriod = format.vert_v_period;
+
+			break;
+		}
+		XFree(formats);
+	}
+	return inf;
+}
+
 void QtXvWidget::setXvAttribute(const QString &attribute, int value)
 {
 	if (!isInitialized()) {
@@ -288,7 +345,7 @@ void QtXvWidget::setXvAttribute(const QString &attribute, int value)
 
 int QtXvWidget::getXvAttribute(const QString &attribute) const
 {
-	if (m_port == 0) {
+	if (!isInitialized()) {
 		return 0;
 	}
 
@@ -304,12 +361,22 @@ bool QtXvWidget::present(const QVideoFrame &frame)
 	if (!isInitialized() || frame.pixelFormat() != pixelFormat() || frame.bits() == 0) {
 		return false;
 	}
+	if (frame.width() - m_leftBorder - m_rightBorder <= 0) {
+		return false;
+	}
+	if (frame.height() - m_topBorder - m_bottomBorder <= 0) {
+		return false;
+	}
 
 	char *bits = const_cast<char *>(reinterpret_cast<const char *>(frame.bits()));
 	XvImage *image = XvCreateImage(getDpy(), m_port, m_format, bits, frame.width(), frame.height());
 	XGCValues xgcv;
 	GC gc = XCreateGC(getDpy(), winId(), 0L, &xgcv);
-	XvPutImage(getDpy(), m_port, winId(), gc, image, 0, 0, image->width, image->height, 0, 0, width(), height());
+	int imgX = m_leftBorder;
+	int imgY = m_topBorder;
+	int imgW = image->width - m_leftBorder - m_rightBorder;
+	int imgH = image->height - m_topBorder - m_bottomBorder;
+	XvPutImage(getDpy(), m_port, winId(), gc, image, imgX, imgY, imgW, imgH, 0, 0, width(), height());
 	XFreeGC(getDpy(), gc);
 	XFree(image);
 
@@ -330,6 +397,7 @@ Display *QtXvWidget::getDpy() const
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 	QWindow *window = new QWindow(/* screen */);
 	Display *dpy = static_cast<Display *>(qGuiApp->platformNativeInterface()->nativeResourceForWindow("display", window));
+	delete window;
 #else
 	Display *dpy = x11Info().display();
 #endif
@@ -356,10 +424,10 @@ bool QtXvWidget::hasXvExtension() const
 
 void QtXvWidget::ungrabPort()
 {
-	clearFormat();
 	if (!isInitialized()) {
 		return;
 	}
+	clearFormat();
 	XvUngrabPort(getDpy(), m_port, CurrentTime);
 	m_port = 0;
 	emit initializedChanged();
