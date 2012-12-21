@@ -146,8 +146,10 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 			case 'd':
 				gen_debugmode = 1;
 				break;
-			case 'w':
-				chdir(optarg);
+			case 'w': {
+					int ret = chdir(optarg);
+					Q_UNUSED(ret);
+				}
 				break;
 			case 'r':
 				if (!strcasecmp(optarg, "europe")) {
@@ -303,7 +305,8 @@ void QtGeneratorWindow::uiNewFrame()
 void QtGeneratorWindow::uiMusiclog(uint8 *data, unsigned int length)
 {
 	if (ui_musicfile != -1) {
-		write(ui_musicfile, data, length);
+		size_t size = write(ui_musicfile, data, length);
+		Q_UNUSED(size);
 	}
 }
 
