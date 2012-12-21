@@ -316,31 +316,28 @@ void QtGeneratorWindow::uiMusiclog(uint8 *data, unsigned int length)
 
 void QtGeneratorWindow::uiLine(int line)
 {
-	static uint8 gfx[320];
-	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
-	unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
-
 	if (!ui_plotfield) {
 		return;
 	}
 
+	if (line == (int)(vdp_vislines >> 1)) {
+		uiFrame();
+	}
+	//uiSingleLine(line);
+}
+
+inline void QtGeneratorWindow::uiSingleLine(int line)
+{
+	static uint8 gfx[320];
 	if (line < -(int)vborder || line >= (int)(vdp_vislines + vborder)) {
 		return;
 	}
+	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
+	unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
 
 	uint8 *location = frame.bits() + (line + vborder) * HMAXSIZE * 2;
 	uint8 bg = vdp_reg[7] & 63;
 	uiplot_checkpalcache(0);
-
-	if (line < 0 || line >= (int)vdp_vislines) {
-		uint32 bg;
-		uint32 *p = reinterpret_cast<uint32 *>(location);
-		uint32 *q = p + HSIZE / 2;
-		while (p < q) {
-			*p++ = bg;
-		}
-		return;
-	}
 
 	/* normal line */
 	switch ((vdp_reg[12] >> 1) & 3) {
@@ -355,6 +352,22 @@ void QtGeneratorWindow::uiLine(int line)
 	}
 
 	uiplot_convertdata_yvyu(gfx, reinterpret_cast<uint16 *>(location) + offset, width);
+}
+
+inline void QtGeneratorWindow::uiFrame()
+{
+	static uint8 gfx[(320 + 16) * (240 + 16)];
+	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
+	unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
+
+	uiplot_checkpalcache(0);
+
+	vdp_renderframe(gfx + (8 * (320 + 16)) + 8, 320 + 16);
+	uint8 *location = frame.bits() + vborder * HMAXSIZE * 2;
+	for (int line = 0; line < vdp_vislines; ++line) {
+		uiplot_convertdata_yvyu(gfx + 8 + (line + 8) * (320 + 16), reinterpret_cast<uint16 *>(location) + offset, width);
+		location += HMAXSIZE * 2;
+	}
 }
 
 void QtGeneratorWindow::uiUsage()

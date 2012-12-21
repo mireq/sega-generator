@@ -47,6 +47,8 @@ public:
 	void uiNewFrame();
 	void uiMusiclog(uint8 *data, unsigned int length);
 	void uiLine(int line);
+	void uiSingleLine(int line);
+	void uiFrame();
 	void uiSimplePlot();
 	void uiUsage();
 
