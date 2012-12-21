@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QTimer>
@@ -102,6 +103,7 @@ void Emulator::loadCurrentImage()
 {
 	char *error = gen_loadimage(m_image.toLocal8Bit().constData());
 	if (error) {
+		m_image = QString();
 		fprintf(stderr, "%s\n", error);
 		if (m_arcade) {
 			gen_loadmemrom(initcart, initcart_len);
@@ -144,8 +146,13 @@ QtGeneratorWindow::~QtGeneratorWindow()
 void QtGeneratorWindow::createMenu()
 {
 	QMenuBar *bar = menuBar();
+
 	QMenu *fileMenu = new QMenu("&File", this);
+	QAction *openROMAction = new QAction("&Open ROM", this);
+	connect(openROMAction, SIGNAL(triggered()), SLOT(openROM()));
+	fileMenu->addAction(openROMAction);
 	bar->addMenu(fileMenu);
+
 	QMenu *emulationMenu = new QMenu("&Emulation", this);
 	bar->addMenu(emulationMenu);
 }
@@ -401,5 +408,12 @@ void QtGeneratorWindow::uiUsage()
 void QtGeneratorWindow::presentFrame()
 {
 	xv->present(frame);
+}
+
+void QtGeneratorWindow::openROM()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open ROM"));
+	emulator->loadImage(fileName);
+	QTimer::singleShot(0, emulator, SLOT(start()));
 }
 

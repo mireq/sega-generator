@@ -57,6 +57,7 @@ public:
 
 private slots:
 	void presentFrame();
+	void openROM();
 
 private:
 	Emulator *emulator;
