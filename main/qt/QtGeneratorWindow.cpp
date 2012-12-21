@@ -36,10 +36,6 @@ extern "C"
 #define VSIZE ((vdp_vislines ? vdp_vislines : 224) + 2 * vborder)
 
 
-static char ui_region_lock = 0;          /* lock region at startup -Trilkk */
-
-static const char *ui_initload = NULL;  /* filename to load on init */
-static int ui_arcade_mode = 0;          /* play ROM at start */
 static uint8 ui_plotfield = 0;  /* flag indicating plotting this field */
 static int ui_running = 0;      /* running a game */
 static int ui_was_paused = 0;   /* used for frame skip/delay */
@@ -58,8 +54,8 @@ static int sound_active;
 
 Emulator::Emulator(QtGeneratorWindow *parent):
 	QThread(parent),
-	win(parent),
-	image(0)
+	m_win(parent),
+	m_arcade(false)
 {
 }
 
@@ -67,15 +63,29 @@ Emulator::~Emulator()
 {
 }
 
-void Emulator::loadImage(const char *image)
+void Emulator::loadImage(const QString &file)
 {
-	this->image = image;
+	m_image = file;
+	QMetaObject::invokeMethod(this, "loadCurrentImage", Qt::QueuedConnection);
+}
+
+void Emulator::setArcade(bool arcade)
+{
+	m_arcade = arcade;
 }
 
 void Emulator::run()
 {
-	if (!image) {
-		gen_loadmemrom(initcart, initcart_len);
+	if (m_image.isNull()) {
+		if (m_arcade) {
+			gen_loadmemrom(initcart, initcart_len);
+		}
+		else {
+			return;
+		}
+	}
+	else {
+		loadCurrentImage();
 	}
 	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
 	exec();
@@ -83,17 +93,23 @@ void Emulator::run()
 
 void Emulator::renderFrame()
 {
-	if (image) {
-		char *error = gen_loadimage(image);
-		if (error) {
-			fprintf(stderr, "%s\n", error);
-			gen_loadmemrom(initcart, initcart_len);
-		}
-		image = 0;
-	}
-	win->uiNewFrame();
+	m_win->uiNewFrame();
 	event_doframe();
 	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
+}
+
+void Emulator::loadCurrentImage()
+{
+	char *error = gen_loadimage(m_image.toLocal8Bit().constData());
+	if (error) {
+		fprintf(stderr, "%s\n", error);
+		if (m_arcade) {
+			gen_loadmemrom(initcart, initcart_len);
+		}
+		else {
+			return;
+		}
+	}
 }
 
 
@@ -141,7 +157,7 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	while ((ch = getopt(argc, argv, "?adcr:w:")) != -1) {
 		switch (ch) {
 			case 'a':
-				ui_arcade_mode = 1;
+				emulator->setArcade(true);
 				break;
 			case 'd':
 				gen_debugmode = 1;
@@ -153,13 +169,16 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 				break;
 			case 'r':
 				if (!strcasecmp(optarg, "europe")) {
-					ui_region_lock = 'E';
+					vdp_overseas = 1;
+					vdp_pal = 1;
 				}
 				else if (!strcasecmp(optarg, "japan")) {
-					ui_region_lock = 'J';
+					vdp_overseas = 0;
+					vdp_pal = 0;
 				}
 				else if (!strcasecmp(optarg, "usa")) {
-					ui_region_lock = 'U';
+					vdp_overseas = 1;
+					vdp_pal = 0;
 				}
 				else {
 					uiUsage();
@@ -179,10 +198,9 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	argv += optind;
 
 	if (argc == 1) {
-		ui_initload = argv[0];
+		emulator->loadImage(argv[0]);
 		argc--;
 		argv++;
-		emulator->loadImage(ui_initload);
 	}
 
 	if (argc > 0) {

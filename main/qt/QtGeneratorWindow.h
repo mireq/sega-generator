@@ -21,17 +21,20 @@ Q_OBJECT
 public:
 	Emulator(QtGeneratorWindow *parent = 0);
 	~Emulator();
-	void loadImage(const char *image);
+	void loadImage(const QString &file);
+	void setArcade(bool arcade);
 
 protected:
 	void run();
 
 private slots:
 	void renderFrame();
+	void loadCurrentImage();
 
 private:
-	QtGeneratorWindow *win;
-	const char *image;
+	QtGeneratorWindow *m_win;
+	bool m_arcade;
+	QString m_image;
 }; /* -----  end of class Emulator  ----- */
 
 
