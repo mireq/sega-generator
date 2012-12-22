@@ -332,16 +332,16 @@ void vdp_ramcopy_vram(int type)
     srcmask = 0xffff;           /* 64k words = 128k */
     srcaddr = ((srcbank & 0x7f) << 16);
     srcmemory = (uint16 *) cpu68k_rom;
-	
+
 	if ((srcaddr >> 1) >= cpu68k_romlen) {
 		LOG_REQUEST(("srcbank=%u, srcaddr=0x%lx, length=%u",
 			(unsigned) srcbank, (unsigned long) srcaddr,
-			(unsigned) length));	
+			(unsigned) length));
 		length = 0;
 	} else if (((srcaddr + length) << 1) > cpu68k_romlen) {
 		LOG_REQUEST(("srcbank=%u, srcaddr=0x%lx, length=%u",
 			(unsigned) srcbank, (unsigned long) srcaddr,
-			(unsigned) length));	
+			(unsigned) length));
 		length = (cpu68k_romlen - srcaddr) >> 1;
 	assert((uint8 *) &srcmemory[srcaddr + (length & 0xffff)]
 		< &cpu68k_rom[cpu68k_romlen - 1]);
@@ -988,7 +988,7 @@ void vdp_newlayer(unsigned int line, uint8 *pridata, uint8 *outdata,
     voffset = (voffset + line) & vmask;
     if (hsize == 2)
       /* hsize=2 is special - only use top row in table */
-      voffset &= 7;   
+      voffset &= 7;
     cellinfo = LOCENDIAN16(patterndata[(hoffset >> 3) +
                                        hwidth *
                                        ((voffset >> 3) >> interlace)]);
@@ -2029,7 +2029,7 @@ int vdp_sprite_simple(unsigned int priority, uint8 *framedata,
         if (xcell * 8 + hpos < -7 || xcell * 8 + hpos >= 320)
           /* cell out of plotting area */
           continue;
-        cellloc = framedata + ((vpos + ycell * 8) * lineoffset +
+        cellloc = framedata + (int)((vpos + ycell * 8) * lineoffset +
                                (hpos + xcell * 8));
         vdp_plotcell(patloc, palette, flags, cellloc, lineoffset);
       }
@@ -2048,7 +2048,7 @@ int vdp_sprite_simple(unsigned int priority, uint8 *framedata,
         if (xcell * 8 + hpos < -7 || xcell * 8 + hpos >= 320)
           /* cell out of plotting area */
           continue;
-        cellloc = framedata + ((vpos + ycell * 8) * lineoffset +
+        cellloc = framedata + (int)((vpos + ycell * 8) * lineoffset +
                                (hpos + xcell * 8));
         vdp_plotcell(patloc, palette, flags, cellloc, lineoffset);
       }
@@ -2066,7 +2066,7 @@ int vdp_sprite_simple(unsigned int priority, uint8 *framedata,
         if (xcell * 8 + hpos < -7 || xcell * 8 + hpos >= 320)
           /* cell out of plotting area */
           continue;
-        cellloc = framedata + ((vpos + ycell * 8) * lineoffset +
+        cellloc = framedata + (int)((vpos + ycell * 8) * lineoffset +
                                (hpos + xcell * 8));
         vdp_plotcell(patloc, palette, flags, cellloc, lineoffset);
       }
@@ -2085,7 +2085,7 @@ int vdp_sprite_simple(unsigned int priority, uint8 *framedata,
         if (xcell * 8 + hpos < -7 || xcell * 8 + hpos >= 320)
           /* cell out of plotting area */
           continue;
-        cellloc = framedata + ((vpos + ycell * 8) * lineoffset +
+        cellloc = framedata + (int)((vpos + ycell * 8) * lineoffset +
                                (hpos + xcell * 8));
         vdp_plotcell(patloc, palette, flags, cellloc, lineoffset);
       }
