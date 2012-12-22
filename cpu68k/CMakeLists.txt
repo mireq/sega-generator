@@ -1,12 +1,13 @@
-include_directories(
-	"${CMAKE_CURRENT_SOURCE_DIR}"
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}"
 	"${CMAKE_CURRENT_BINARY_DIR}"
 	"${CMAKE_SOURCE_DIR}/hdr"
 	"${CMAKE_BINARY_DIR}/hdr"
 	"${CMAKE_BINARY_DIR}"
 )
 
-add_executable(def68k def68k.c tab68k.c)
+if (NOT CMAKE_CROSSCOMPILING)
+	add_executable(def68k def68k.c tab68k.c)
+endif (NOT CMAKE_CROSSCOMPILING)
 
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/def68k.def
@@ -27,7 +28,9 @@ add_custom_command(
 	MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/def68k.def
 )
 
-add_executable(gen68k gen68k.c tab68k.c def68k-iibs.h)
+if (NOT CMAKE_CROSSCOMPILING)
+	add_executable(gen68k gen68k.c tab68k.c def68k-iibs.h)
+endif (NOT CMAKE_CROSSCOMPILING)
 
 set (GEN68K_OUTPUTS
 	${CMAKE_CURRENT_BINARY_DIR}/cpu68k-0.c
@@ -55,4 +58,9 @@ add_custom_command(
 	MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/def68k.def
 )
 
-add_library(68k.3 STATIC ${GEN68K_OUTPUTS} ${CMAKE_CURRENT_SOURCE_DIR}/tab68k.c)
+add_library(68k.3 STATIC ${GEN68K_OUTPUTS} ${CMAKE_CURRENT_SOURCE_DIR}/tab68k.c def68k-iibs.h)
+
+if (NOT CMAKE_CROSSCOMPILING)
+	export(TARGETS def68k gen68k FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake)
+endif (NOT CMAKE_CROSSCOMPILING)
+

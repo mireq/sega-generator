@@ -7,10 +7,10 @@
 #undef ALLEGRO
 
 /* Define to use RAZE z80 emulation */
-#cmakedefine ENABLE_RAZE
+#cmakedefine USE_RAZE
 
 /* Define to use the portable C mz80 z80 emulation */
-#ifdef ENABLE_RAZE
+#ifdef USE_RAZE
 #define RAZE
 #undef CMZ80
 #else
@@ -19,43 +19,43 @@
 #endif
 
 /* Define for direct ram writes (faster) */
-#undef DIRECTRAM
+#define DIRECTRAM
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
+#cmakedefine HAVE_INTTYPES_H
 
 /* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
+#cmakedefine HAVE_MEMORY_H
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
+#cmakedefine HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
+#cmakedefine HAVE_STDLIB_H
 
 /* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
+#cmakedefine HAVE_STRINGS_H
 
 /* Define to 1 if you have the <string.h> header file. */
-#undef HAVE_STRING_H
+#cmakedefine HAVE_STRING_H
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
+#cmakedefine HAVE_SYS_STAT_H
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
+#cmakedefine HAVE_SYS_TYPES_H
 
 /* Define to 1 if you have the <tcl8.0.h> header file. */
-#undef HAVE_TCL8_0_H
+#cmakedefine HAVE_TCL8_0_H
 
 /* Define to 1 if you have the <tk8.0.h> header file. */
-#undef HAVE_TK8_0_H
+#cmakedefine HAVE_TK8_0_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#undef HAVE_UNISTD_H
+#cmakedefine HAVE_UNISTD_H
 
 /* JPEG features */
 #undef JPEG

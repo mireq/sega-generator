@@ -179,7 +179,7 @@ int soundp_output(uint16 *left, uint16 *right, unsigned int samples)
   return 0;
 }
 
-#else /* !USE_SDL_AUDIO */
+#elif defined(USE_SOUNDCARD_AUDIO)
 
 #ifdef JFM
 #  include "jfm.h"
@@ -365,6 +365,31 @@ int soundp_output(uint16 *left, uint16 *right, unsigned int samples)
   }
   return 0;
 }
-#endif /* USE_SDL_AUDIO */
+#else /* NO_SOUND */
+
+static int samples_in_buffer = 0;
+
+int soundp_start(void)
+{
+  return 0;
+}
+
+void soundp_stop(void)
+{
+}
+
+int soundp_samplesbuffered(void)
+{
+  return 5000;
+}
+
+int soundp_output(uint16 *left, uint16 *right, unsigned int samples)
+{
+  struct timespec ts = { 0, samples * 22675 };
+  nanosleep(&ts, NULL);
+  return 0;
+}
+
+#endif
 
 /* vi: set ai et ts=2 sts=2 sw=2 cindent: */
