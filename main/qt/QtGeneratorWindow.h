@@ -56,13 +56,12 @@ public:
 	void uiUsage();
 
 private slots:
-	void presentFrame();
 	void openROM();
 
 private:
-	Emulator *emulator;
-	QtXvWidget *xv;
-	QVideoFrame frame;
+	Emulator *m_emulator;
+	QtXvWidget *m_xv;
+	QVideoFrame m_frame;
 	int hborder;
 	int vborder;
 }; /* -----  end of class QtGeneratorWindow  ----- */

@@ -33,8 +33,8 @@ extern "C"
 #define HMAXSIZE (320 + 2 * HBORDER_MAX)
 #define VMAXSIZE (240 + 2 * VBORDER_MAX)
 
-#define HSIZE (320 + 2 * hborder)
-#define VSIZE ((vdp_vislines ? vdp_vislines : 224) + 2 * vborder)
+#define HSIZE (320 + 2 * HBORDER_DEFAULT)
+#define VSIZE ((vdp_vislines ? vdp_vislines : 224) + 2 * VBORDER_DEFAULT)
 
 
 static uint8 ui_plotfield = 0;  /* flag indicating plotting this field */
@@ -43,10 +43,6 @@ static int ui_was_paused = 0;   /* used for frame skip/delay */
 static uint8 ui_frameskip = 0;  /* 0 for dynamic */
 static uint8 ui_actualskip = 0; /* the last skip we did (1..) */
 static int ui_locksurface;      /* lock SDL surface? */
-static unsigned int ui_hborder = HBORDER_DEFAULT; /* horizontal border */
-static unsigned int ui_vborder = VBORDER_DEFAULT; /* vertical border */
-static unsigned int hborder = HBORDER_DEFAULT; /* actual value */
-static unsigned int vborder = VBORDER_DEFAULT; /* actual value */
 static int ui_musicfile = -1;   /* fd of output file for GYM/GNM logging */
 static t_avi *ui_avi = NULL;    /* Current AVI writer if applicable */
 static uint8 *ui_avivideo;      /* video buffer */
@@ -117,30 +113,27 @@ void Emulator::loadCurrentImage()
 
 QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	QMainWindow(parent),
-	emulator(new Emulator(this)),
-	xv(new QtXvWidget(this)),
-	hborder(HBORDER_DEFAULT),
-	vborder(VBORDER_DEFAULT)
+	m_emulator(new Emulator(this)),
+	m_xv(new QtXvWidget(this))
 {
-	xv->setAdaptor(xv->adaptors().first());
-	xv->setMinimumSize(HMAXSIZE, VMAXSIZE);
-	if (!xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
-		if (!xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
+	m_xv->setAdaptor(m_xv->adaptors().first());
+	if (!m_xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
+		if (!m_xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
 			fprintf(stderr, "No supported xv device found");
 		}
 	}
-	if (xv->pixelFormat() != QVideoFrame::Format_Invalid) {
-		frame = QVideoFrame(HMAXSIZE * VMAXSIZE * 2, QSize(HMAXSIZE, VMAXSIZE), HMAXSIZE * 2, xv->pixelFormat());
-		frame.map(QAbstractVideoBuffer::ReadWrite);
+	if (m_xv->pixelFormat() != QVideoFrame::Format_Invalid) {
+		m_frame = QVideoFrame(HMAXSIZE * VMAXSIZE * m_xv->formatInfo().bitsPerPixel, QSize(HMAXSIZE, VMAXSIZE), HMAXSIZE * 2, m_xv->pixelFormat());
+		m_frame.map(QAbstractVideoBuffer::ReadWrite);
 	}
-	setCentralWidget(xv);
+	setCentralWidget(m_xv);
 	createMenu();
 }
 
 QtGeneratorWindow::~QtGeneratorWindow()
 {
-	emulator->quit();
-	emulator->wait();
+	m_emulator->quit();
+	m_emulator->wait();
 }
 
 void QtGeneratorWindow::createMenu()
@@ -164,7 +157,7 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	while ((ch = getopt(argc, argv, "?adcr:w:")) != -1) {
 		switch (ch) {
 			case 'a':
-				emulator->setArcade(true);
+				m_emulator->setArcade(true);
 				break;
 			case 'd':
 				gen_debugmode = 1;
@@ -205,7 +198,7 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	argv += optind;
 
 	if (argc == 1) {
-		emulator->loadImage(argv[0]);
+		m_emulator->loadImage(argv[0]);
 		argc--;
 		argv++;
 	}
@@ -215,7 +208,7 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 		return 1;
 	}
 
-	QTimer::singleShot(0, emulator, SLOT(start()));
+	QTimer::singleShot(0, m_emulator, SLOT(start()));
 
 	return 0;
 }
@@ -237,10 +230,10 @@ void QtGeneratorWindow::uiEndField()
 
 	if (ui_plotfield) {
 		unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
-		unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
-		xv->setBorder(vborder, HMAXSIZE - width - offset, VMAXSIZE - vdp_vislines - vborder, offset);
-		xv->setMinimumSize(width, vdp_vislines);
-		presentFrame();
+		unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
+		m_xv->setBorder(VBORDER_DEFAULT, HMAXSIZE - width - offset, VMAXSIZE - vdp_vislines - VBORDER_DEFAULT, offset);
+		m_xv->setMinimumSize(width, vdp_vislines);
+		m_xv->present(m_frame);
 	}
 
 	if (ui_frameskip == 0) {
@@ -354,13 +347,13 @@ void QtGeneratorWindow::uiLine(int line)
 inline void QtGeneratorWindow::uiSingleLine(int line)
 {
 	static uint8 gfx[320];
-	if (line < -(int)vborder || line >= (int)(vdp_vislines + vborder)) {
+	if (line < -(int)VBORDER_DEFAULT || line >= (int)(vdp_vislines + VBORDER_DEFAULT)) {
 		return;
 	}
 	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
-	unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
+	unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
 
-	uint8 *location = frame.bits() + (line + vborder) * HMAXSIZE * 2;
+	uint8 *location = m_frame.bits() + (line + VBORDER_DEFAULT) * HMAXSIZE * 2;
 	uint8 bg = vdp_reg[7] & 63;
 	uiplot_checkpalcache(0);
 
@@ -383,12 +376,12 @@ inline void QtGeneratorWindow::uiFrame()
 {
 	static uint8 gfx[(320 + 16) * (240 + 16)];
 	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
-	unsigned int offset = hborder + ((vdp_reg[12] & 1) ? 0 : 32);
+	unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
 
 	uiplot_checkpalcache(0);
 
 	vdp_renderframe(gfx + (8 * (320 + 16)) + 8, 320 + 16);
-	uint8 *location = frame.bits() + vborder * HMAXSIZE * 2;
+	uint8 *location = m_frame.bits() + VBORDER_DEFAULT * HMAXSIZE * 2;
 	for (int line = 0; line < vdp_vislines; ++line) {
 		uiplot_convertdata_yvyu(gfx + 8 + (line + 8) * (320 + 16), reinterpret_cast<uint16 *>(location) + offset, width);
 		location += HMAXSIZE * 2;
@@ -405,15 +398,10 @@ void QtGeneratorWindow::uiUsage()
 	fprintf(stderr, "  ROM types supported: .rom or .smd interleaved (autodetected)\n");
 }
 
-void QtGeneratorWindow::presentFrame()
-{
-	xv->present(frame);
-}
-
 void QtGeneratorWindow::openROM()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open ROM"));
-	emulator->loadImage(fileName);
-	QTimer::singleShot(0, emulator, SLOT(start()));
+	m_emulator->loadImage(fileName);
+	QTimer::singleShot(0, m_emulator, SLOT(start()));
 }
 
