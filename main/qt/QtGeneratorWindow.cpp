@@ -205,13 +205,8 @@ int QtGeneratorWindow::uiInit(int argc, char *argv[])
 	return 0;
 }
 
-int frm = 0;
 void QtGeneratorWindow::uiEndField()
 {
-	frm++;
-	if (frm == 1000) {
-		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
-	}
 	static int counter = 0, frames = 0, waitstates, ui_actualskip = 0;
 	static struct timeval tv0;
 	struct timeval tv;
