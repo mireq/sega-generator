@@ -59,11 +59,11 @@ private slots:
 	void openROM();
 
 private:
+	QVideoFrame m_frame;
 	Emulator *m_emulator;
 	QtXvWidget *m_xv;
-	QVideoFrame m_frame;
-	int hborder;
-	int vborder;
+	bool m_plotfield;
+	int m_frameskip;
 }; /* -----  end of class QtGeneratorWindow  ----- */
 
 #endif /* end of include guard: QTGENERATORWINDOW_H_92ZLRNOU */

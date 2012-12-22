@@ -37,16 +37,6 @@ extern "C"
 #define VSIZE ((vdp_vislines ? vdp_vislines : 224) + 2 * VBORDER_DEFAULT)
 
 
-static uint8 ui_plotfield = 0;  /* flag indicating plotting this field */
-static int ui_running = 0;      /* running a game */
-static int ui_was_paused = 0;   /* used for frame skip/delay */
-static uint8 ui_frameskip = 0;  /* 0 for dynamic */
-static uint8 ui_actualskip = 0; /* the last skip we did (1..) */
-static int ui_locksurface;      /* lock SDL surface? */
-static int ui_musicfile = -1;   /* fd of output file for GYM/GNM logging */
-static t_avi *ui_avi = NULL;    /* Current AVI writer if applicable */
-static uint8 *ui_avivideo;      /* video buffer */
-static uint8 *ui_aviaudio;      /* audio buffer */
 static int sound_active;
 
 Emulator::Emulator(QtGeneratorWindow *parent):
@@ -114,7 +104,9 @@ void Emulator::loadCurrentImage()
 QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	QMainWindow(parent),
 	m_emulator(new Emulator(this)),
-	m_xv(new QtXvWidget(this))
+	m_xv(new QtXvWidget(this)),
+	m_plotfield(true),
+	m_frameskip(0)
 {
 	m_xv->setAdaptor(m_xv->adaptors().first());
 	if (!m_xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
@@ -220,7 +212,7 @@ void QtGeneratorWindow::uiEndField()
 	if (frm == 1000) {
 		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
 	}
-	static int counter = 0, frames = 0, waitstates;
+	static int counter = 0, frames = 0, waitstates, ui_actualskip = 0;
 	static struct timeval tv0;
 	struct timeval tv;
 	long dt;
@@ -228,7 +220,7 @@ void QtGeneratorWindow::uiEndField()
 
 	gettimeofday(&tv, NULL);
 
-	if (ui_plotfield) {
+	if (m_plotfield) {
 		unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
 		unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
 		m_xv->setBorder(VBORDER_DEFAULT, HMAXSIZE - width - offset, VMAXSIZE - vdp_vislines - VBORDER_DEFAULT, offset);
@@ -236,7 +228,7 @@ void QtGeneratorWindow::uiEndField()
 		m_xv->present(m_frame);
 	}
 
-	if (ui_frameskip == 0) {
+	if (m_frameskip == 0) {
 		/* dynamic frame skipping */
 		counter++;
 		if (sound_feedback >= 0) {
@@ -245,12 +237,7 @@ void QtGeneratorWindow::uiEndField()
 		}
 	}
 	else {
-		ui_actualskip = ui_frameskip;
-	}
-
-	if (ui_was_paused) {
-		ui_was_paused = 0;
-		frames = 0;
+		ui_actualskip = m_frameskip;
 	}
 
 	dt = (tv.tv_sec - tv0.tv_sec) * 1000000 + tv.tv_usec - tv0.tv_usec;
@@ -283,24 +270,24 @@ void QtGeneratorWindow::uiNewFrame()
 
 	if (((vdp_reg[12] >> 1) & 3) && vdp_oddframe) {
 	/* interlace mode, and we're about to do an odd field - we always leave
-	   ui_plotfield alone so we do fields in pairs, this stablises the
+	   m_plotfield alone so we do fields in pairs, this stablises the
 	   display, reduces blurring */
 	}
 	else {
-		ui_plotfield = 0;
-		if (ui_frameskip == 0) {
+		m_plotfield = false;
+		if (m_frameskip == 0) {
 			if (sound_feedback != -1) {
-				ui_plotfield = 1;
+				m_plotfield = true;
 			}
 		}
 		else {
-			if (cpu68k_frames % ui_frameskip == 0) {
-				ui_plotfield = 1;
+			if (cpu68k_frames % m_frameskip == 0) {
+				m_plotfield = true;
 			}
 		}
 	}
 
-	if (!ui_plotfield) {
+	if (!m_plotfield) {
 		skipcount++;
 		frameplots[frameplots_i++] = 0;
 		return;
@@ -326,15 +313,13 @@ void QtGeneratorWindow::uiNewFrame()
 
 void QtGeneratorWindow::uiMusiclog(uint8 *data, unsigned int length)
 {
-	if (ui_musicfile != -1) {
-		size_t size = write(ui_musicfile, data, length);
-		Q_UNUSED(size);
-	}
+	Q_UNUSED(data);
+	Q_UNUSED(length);
 }
 
 void QtGeneratorWindow::uiLine(int line)
 {
-	if (!ui_plotfield) {
+	if (!m_plotfield) {
 		return;
 	}
 
