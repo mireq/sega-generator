@@ -158,12 +158,15 @@ void QtGeneratorWindow::createMenu()
 	QAction *openROMAction = new QAction(Icon("rom"), "&Open ROM", this);
 	QAction *loadStateAction = new QAction(Icon("document-open"), "&Load state", this);
 	QAction *saveStateAction = new QAction(Icon("document-save"), "&Save state", this);
+	QAction *quitAction = new QAction(Icon("application-exit"), "&Quit", this);
 	connect(openROMAction, SIGNAL(triggered()), SLOT(openROM()));
 	connect(loadStateAction, SIGNAL(triggered()), SLOT(loadState()));
 	connect(saveStateAction, SIGNAL(triggered()), SLOT(saveState()));
+	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 	fileMenu->addAction(openROMAction);
 	fileMenu->addAction(loadStateAction);
 	fileMenu->addAction(saveStateAction);
+	fileMenu->addAction(quitAction);
 	bar->addMenu(fileMenu);
 
 	QMenu *emulationMenu = new QMenu("&Emulation", this);
