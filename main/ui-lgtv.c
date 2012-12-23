@@ -53,17 +53,15 @@ void ui_err(const char *text, ...)
 void ui_line(int line)
 {
 	static uint8 gfx[(320 + 16) * (240 + 16)];
-	//static int frame = 0;
+	static int frame = 0;
 
 	if (line != (int)(vdp_vislines >> 1)) {
 		return;
 	}
-	/*
 	frame++;
-	if (frame % 8 != 0) {
+	if (frame % 2 != 0) {
 		return;
 	}
-	*/
 
 	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
 	unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
@@ -83,7 +81,7 @@ void ui_line(int line)
 
 		for (ui = 0; ui < width; ++ui) {
 			col = uiplot_palcache[indata[ui]];
-			outdata[ui] = 0x8000 | ((col & 0xf8) >> 3) | ((col & 0xf800) >> 6) | ((col & 0xf80000) >> 9) | 0x0001;
+			outdata[ui] = col | 0x0001;
 		}
 
 		location += 1368;
@@ -134,7 +132,7 @@ int ui_init(int argc, const char *argv[])
 	if (argc >= 2) {
 		initload = argv[1];
 	}
-	uiplot_setshifts(19, 11, 3);
+	uiplot_setshifts(10, 5, 0);
 	return 0;
 }
 
