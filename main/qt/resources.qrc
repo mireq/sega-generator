@@ -1,0 +1,16 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+	<file>icons/16x16/document-open.png</file>
+	<file>icons/16x16/document-save.png</file>
+	<file>icons/16x16/rom.png</file>
+	<file>icons/22x22/document-open.png</file>
+	<file>icons/22x22/document-save.png</file>
+	<file>icons/22x22/rom.png</file>
+	<file>icons/32x32/document-open.png</file>
+	<file>icons/32x32/document-save.png</file>
+	<file>icons/32x32/rom.png</file>
+	<file>icons/48x48/cpu.png</file>
+	<file>icons/48x48/video-display.png</file>
+	<file>icons/48x48/input-gaming.png</file>
+</qresource>
+</RCC>

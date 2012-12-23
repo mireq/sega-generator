@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <sys/time.h>
 #include "QtGeneratorWindow.h"
+#include "Icon.h"
 
 extern "C"
 {
@@ -159,9 +160,9 @@ void QtGeneratorWindow::createMenu()
 	QMenuBar *bar = menuBar();
 
 	QMenu *fileMenu = new QMenu("&File", this);
-	QAction *openROMAction = new QAction("&Open ROM", this);
-	QAction *loadStateAction = new QAction("&Load state", this);
-	QAction *saveStateAction = new QAction("&Save state", this);
+	QAction *openROMAction = new QAction(Icon("rom"), "&Open ROM", this);
+	QAction *loadStateAction = new QAction(Icon("document-open"), "&Load state", this);
+	QAction *saveStateAction = new QAction(Icon("document-save"), "&Save state", this);
 	connect(openROMAction, SIGNAL(triggered()), SLOT(openROM()));
 	connect(loadStateAction, SIGNAL(triggered()), SLOT(loadState()));
 	connect(saveStateAction, SIGNAL(triggered()), SLOT(saveState()));

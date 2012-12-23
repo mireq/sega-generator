@@ -49,6 +49,8 @@ if (USE_QT_GUI)
 	set (GENERATOR_QT_SOURCES
 		${GENERATOR_COMMON_SOURCES}
 		ui-qt.cpp
+		qt/Icon.cpp
+		qt/Icon.h
 		qt/QtGeneratorWindow.cpp
 		qt/QtGeneratorWindow.h
 		qt/QtXvControlsWidget.cpp
@@ -57,8 +59,10 @@ if (USE_QT_GUI)
 		qt/QtXvWidget.h
 	)
 	qt4_wrap_cpp(MOC_SOURCES qt/QtGeneratorWindow.h qt/QtXvControlsWidget.h qt/QtXvWidget.h)
+	qt4_add_resources(GENERATOR_QRC_SRCS qt/resources.qrc)
+
 	include_directories(${QT_INCLUDES} ${SOUND_INCLUDES})
-	add_executable(generator-qt ${GENERATOR_QT_SOURCES} ${MOC_SOURCES})
+	add_executable(generator-qt ${GENERATOR_QT_SOURCES} ${MOC_SOURCES} ${GENERATOR_QRC_SRCS})
 	target_link_libraries(generator-qt
 		${Z80_LIB}
 		${SOUND_LIBS}
