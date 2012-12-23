@@ -53,6 +53,8 @@ if (USE_QT_GUI)
 		qt/ConfigDialog.h
 		qt/ConfigPanel.cpp
 		qt/ConfigPanel.h
+		qt/KeySequenceEdit.cpp
+		qt/KeySequenceEdit.h
 		qt/Icon.cpp
 		qt/Icon.h
 		qt/Panels.cpp
@@ -70,6 +72,7 @@ if (USE_QT_GUI)
 		qt/QtXvWidget.h
 		qt/ConfigDialog.h
 		qt/ConfigPanel.h
+		qt/KeySequenceEdit.h
 		qt/Panels.h
 	)
 	qt4_add_resources(GENERATOR_QRC_SRCS qt/resources.qrc)

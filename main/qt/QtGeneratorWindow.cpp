@@ -1,5 +1,7 @@
 #include <QApplication>
 #include <QFileDialog>
+#include <QKeyEvent>
+#include <QKeySequence>
 #include <QMenu>
 #include <QMenuBar>
 #include <QSettings>
@@ -139,9 +141,10 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	m_frameskip(0),
 	m_cellRenderer(0)
 {
-	loadSettings();
+	setFocusPolicy(Qt::StrongFocus);
 	setCentralWidget(m_xv);
 	createMenu();
+	loadSettings();
 }
 
 QtGeneratorWindow::~QtGeneratorWindow()
@@ -159,6 +162,10 @@ void QtGeneratorWindow::createMenu()
 	QAction *loadStateAction = new QAction(Icon("document-open"), "&Load state", this);
 	QAction *saveStateAction = new QAction(Icon("document-save"), "&Save state", this);
 	QAction *quitAction = new QAction(Icon("application-exit"), "&Quit", this);
+	openROMAction->setObjectName("openROMAction");
+	loadStateAction->setObjectName("loadStateAction");
+	saveStateAction->setObjectName("saveStateAction");
+	quitAction->setObjectName("quitAction");
 	connect(openROMAction, SIGNAL(triggered()), SLOT(openROM()));
 	connect(loadStateAction, SIGNAL(triggered()), SLOT(loadState()));
 	connect(saveStateAction, SIGNAL(triggered()), SLOT(saveState()));
@@ -172,6 +179,7 @@ void QtGeneratorWindow::createMenu()
 	QMenu *emulationMenu = new QMenu("&Emulation", this);
 	QAction *configureAction = new QAction(Icon("configure"), "&Configure", this);
 	connect(configureAction, SIGNAL(triggered()), SLOT(configure()));
+	configureAction->setObjectName("configureAction");
 	emulationMenu->addAction(configureAction);
 	bar->addMenu(emulationMenu);
 }
@@ -416,6 +424,22 @@ void QtGeneratorWindow::uiUsage()
 	fprintf(stderr, "  ROM types supported: .rom or .smd interleaved (autodetected)\n");
 }
 
+void QtGeneratorWindow::keyPressEvent(QKeyEvent *event)
+{
+	if (!m_emulator->isRunning()) {
+		return;
+	}
+	setKey(event->key(), 1);
+}
+
+void QtGeneratorWindow::keyReleaseEvent(QKeyEvent *event)
+{
+	if (!m_emulator->isRunning()) {
+		return;
+	}
+	setKey(event->key(), 0);
+}
+
 void QtGeneratorWindow::openROM()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open ROM"));
@@ -454,6 +478,8 @@ void QtGeneratorWindow::configure()
 	dlg.addPanel(performancePanel);
 	DisplayPanel *displayPanel = new DisplayPanel(m_xv, &dlg);
 	dlg.addPanel(displayPanel);
+	InputPanel *inputPanel = new InputPanel(&dlg);
+	dlg.addPanel(inputPanel);
 	dlg.exec();
 	loadSettings();
 	m_emulator->start();
@@ -486,6 +512,68 @@ void QtGeneratorWindow::loadSettings()
 	if (m_xv->pixelFormat() != QVideoFrame::Format_Invalid) {
 		m_frame = QVideoFrame(HMAXSIZE * VMAXSIZE * m_xv->formatInfo().bitsPerPixel, QSize(HMAXSIZE, VMAXSIZE), HMAXSIZE * 2, m_xv->pixelFormat());
 		m_frame.map(QAbstractVideoBuffer::ReadWrite);
+	}
+
+	QKeySequence i1a       = settings.value("key_i1a"      , QKeySequence("Z")).value<QKeySequence>();
+	QKeySequence i1b       = settings.value("key_i1b"      , QKeySequence("X")).value<QKeySequence>();
+	QKeySequence i1c       = settings.value("key_i1c"      , QKeySequence("C")).value<QKeySequence>();
+	QKeySequence i1left    = settings.value("key_i1left"   , QKeySequence("Left")).value<QKeySequence>();
+	QKeySequence i1right   = settings.value("key_i1right"  , QKeySequence("Right")).value<QKeySequence>();
+	QKeySequence i1up      = settings.value("key_i1up"     , QKeySequence("Up")).value<QKeySequence>();
+	QKeySequence i1down    = settings.value("key_i1down"   , QKeySequence("Down")).value<QKeySequence>();
+	QKeySequence i1start   = settings.value("key_i1start"  , QKeySequence("Return")).value<QKeySequence>();
+
+	QKeySequence i2a       = settings.value("key_i2a"      , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2b       = settings.value("key_i2b"      , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2c       = settings.value("key_i2c"      , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2left    = settings.value("key_i2left"   , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2right   = settings.value("key_i2right"  , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2up      = settings.value("key_i2up"     , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2down    = settings.value("key_i2down"   , QKeySequence("")).value<QKeySequence>();
+	QKeySequence i2start   = settings.value("key_i2start"  , QKeySequence("")).value<QKeySequence>();
+
+	QKeySequence openROM   = settings.value("key_openROM"  , QKeySequence("Ctrl+O")).value<QKeySequence>();
+	QKeySequence loadState = settings.value("key_loadState", QKeySequence("F2")).value<QKeySequence>();
+	QKeySequence saveState = settings.value("key_saveState", QKeySequence("F3")).value<QKeySequence>();
+	QKeySequence quit      = settings.value("key_quit"     , QKeySequence("Ctrl+Q")).value<QKeySequence>();
+	QKeySequence configure = settings.value("key_configure", QKeySequence("Ctrl+P")).value<QKeySequence>();
+
+	m_pad[0].aKey     = i1a.isEmpty()     ? 0 : i1a[0];
+	m_pad[0].bKey     = i1b.isEmpty()     ? 0 : i1b[0];
+	m_pad[0].cKey     = i1c.isEmpty()     ? 0 : i1c[0];
+	m_pad[0].leftKey  = i1left.isEmpty()  ? 0 : i1left[0];
+	m_pad[0].rightKey = i1right.isEmpty() ? 0 : i1right[0];
+	m_pad[0].upKey    = i1up.isEmpty()    ? 0 : i1up[0];
+	m_pad[0].downKey  = i1down.isEmpty()  ? 0 : i1down[0];
+	m_pad[0].startKey = i1start.isEmpty() ? 0 : i1start[0];
+
+	m_pad[1].aKey     = i2a.isEmpty()     ? 0 : i2a[0];
+	m_pad[1].bKey     = i2b.isEmpty()     ? 0 : i2b[0];
+	m_pad[1].cKey     = i2c.isEmpty()     ? 0 : i2c[0];
+	m_pad[1].leftKey  = i2left.isEmpty()  ? 0 : i2left[0];
+	m_pad[1].rightKey = i2right.isEmpty() ? 0 : i2right[0];
+	m_pad[1].upKey    = i2up.isEmpty()    ? 0 : i2up[0];
+	m_pad[1].downKey  = i2down.isEmpty()  ? 0 : i2down[0];
+	m_pad[1].startKey = i2start.isEmpty() ? 0 : i2start[0];
+
+	findChild<QAction *>("openROMAction")->setShortcut(openROM);
+	findChild<QAction *>("loadStateAction")->setShortcut(loadState);
+	findChild<QAction *>("saveStateAction")->setShortcut(saveState);
+	findChild<QAction *>("quitAction")->setShortcut(quit);
+	findChild<QAction *>("configureAction")->setShortcut(configure);
+}
+
+void QtGeneratorWindow::setKey(int key, int value)
+{
+	for (int p = 0; p < 2; ++p) {
+		if (m_pad[p].aKey == key)     mem68k_cont[p].a = value;
+		if (m_pad[p].bKey == key)     mem68k_cont[p].b = value;
+		if (m_pad[p].cKey == key)     mem68k_cont[p].c = value;
+		if (m_pad[p].leftKey == key)  mem68k_cont[p].left = value;
+		if (m_pad[p].rightKey == key) mem68k_cont[p].right = value;
+		if (m_pad[p].upKey == key)    mem68k_cont[p].up = value;
+		if (m_pad[p].downKey == key)  mem68k_cont[p].down = value;
+		if (m_pad[p].startKey == key) mem68k_cont[p].start = value;
 	}
 }
 

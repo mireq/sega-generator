@@ -35,5 +35,17 @@ private:
 }; /* -----  end of class DisplayPanel  ----- */
 
 
+class InputPanel: public ConfigPanel
+{
+Q_OBJECT
+public:
+	InputPanel(QWidget *parent = 0);
+	~InputPanel();
+	QString panelName() const;
+	QIcon icon() const;
+	void saveChanges();
+}; /* -----  end of class InputPanel  ----- */
+
+
 #endif /* end of include guard: PANELS_H_LWXGEDQL */
 

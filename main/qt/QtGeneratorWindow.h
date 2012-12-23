@@ -48,6 +48,16 @@ class QtGeneratorWindow: public QMainWindow
 {
 Q_OBJECT
 public:
+	struct ControllerKeys {
+		int aKey;
+		int bKey;
+		int cKey;
+		int leftKey;
+		int rightKey;
+		int upKey;
+		int downKey;
+		int startKey;
+	};
 	QtGeneratorWindow(QWidget *parent = 0);
 	~QtGeneratorWindow();
 	void createMenu();
@@ -61,6 +71,10 @@ public:
 	void uiSimplePlot();
 	void uiUsage();
 
+protected:
+	void keyPressEvent(QKeyEvent *event);
+	void keyReleaseEvent(QKeyEvent *event);
+
 private slots:
 	void openROM();
 	void loadState();
@@ -69,12 +83,16 @@ private slots:
 	void loadSettings();
 
 private:
+	void setKey(int key, int value);
+
+private:
 	QVideoFrame m_frame;
 	Emulator *m_emulator;
 	QtXvWidget *m_xv;
 	bool m_plotfield;
 	int m_frameskip;
 	int m_cellRenderer;
+	ControllerKeys m_pad[2];
 }; /* -----  end of class QtGeneratorWindow  ----- */
 
 #endif /* end of include guard: QTGENERATORWINDOW_H_92ZLRNOU */
