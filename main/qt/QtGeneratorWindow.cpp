@@ -414,6 +414,9 @@ void QtGeneratorWindow::uiUsage()
 void QtGeneratorWindow::openROM()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open ROM"));
+	if (fileName.isEmpty()) {
+		return;
+	}
 	m_emulator->loadImage(fileName);
 	QTimer::singleShot(0, m_emulator, SLOT(start()));
 }
@@ -421,6 +424,9 @@ void QtGeneratorWindow::openROM()
 void QtGeneratorWindow::loadState()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load state"));
+	if (fileName.isEmpty()) {
+		return;
+	}
 	m_emulator->loadState(fileName);
 	QTimer::singleShot(0, m_emulator, SLOT(start()));
 }
@@ -428,6 +434,9 @@ void QtGeneratorWindow::loadState()
 void QtGeneratorWindow::saveState()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save state"));
+	if (fileName.isEmpty()) {
+		return;
+	}
 	m_emulator->saveState(fileName);
 }
 
