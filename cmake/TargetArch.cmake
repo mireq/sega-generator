@@ -42,6 +42,8 @@ set(archdetect_c_code "
     #else
         #error cmake_ARCH ppc
     #endif
+#elif defined(_MIPS_ARCH)
+    #error cmake_ARCH mips
 #endif
 
 #error cmake_ARCH unknown

@@ -19,7 +19,8 @@
 /*** global variables ***/
 
 #if (!(defined(PROCESSOR_ARM) || defined(PROCESSOR_SPARC) \
-       || defined(PROCESSOR_i386) || defined(PROCESSOR_x86_64)))
+    || defined(PROCESSOR_i386) || defined(PROCESSOR_x86_64) \
+    || defined(PROCESSOR_MIPS)))
 uint32 reg68k_pc;
 uint32 *reg68k_regs;
 t_sr reg68k_sr;

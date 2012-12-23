@@ -93,6 +93,9 @@
 /* Define if you have a sparc processor */
 #cmakedefine PROCESSOR_SPARC
 
+/* Define if you have a MIPS processor */
+#cmakedefine PROCESSOR_MIPS
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #cmakedefine RETSIGTYPE ${RETSIGTYPE}
 

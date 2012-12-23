@@ -56,6 +56,9 @@ endif (${CMAKE_ARCH} STREQUAL "x86_64")
 if (${CMAKE_ARCH} STREQUAL "sparc")
 	set(PROCESSOR_SPARC 1)
 endif (${CMAKE_ARCH} STREQUAL "sparc")
+if (${CMAKE_ARCH} STREQUAL "mips")
+	set(PROCESSOR_MIPS 1)
+endif (${CMAKE_ARCH} STREQUAL "mips")
 
 
 if (USE_QT_GUI)
