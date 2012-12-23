@@ -50,15 +50,27 @@ Emulator::~Emulator()
 {
 }
 
+void Emulator::setArcade(bool arcade)
+{
+	m_arcade = arcade;
+}
+
+void Emulator::loadState(const QString &file)
+{
+	m_stateFile = file;
+	QMetaObject::invokeMethod(this, "loadCurrentState", Qt::QueuedConnection);
+}
+
+void Emulator::saveState(const QString &file)
+{
+	m_stateFile = file;
+	QMetaObject::invokeMethod(this, "saveCurrentState", Qt::QueuedConnection);
+}
+
 void Emulator::loadImage(const QString &file)
 {
 	m_image = file;
 	QMetaObject::invokeMethod(this, "loadCurrentImage", Qt::QueuedConnection);
-}
-
-void Emulator::setArcade(bool arcade)
-{
-	m_arcade = arcade;
 }
 
 void Emulator::run()
@@ -100,6 +112,20 @@ void Emulator::loadCurrentImage()
 	}
 }
 
+void Emulator::loadCurrentState()
+{
+	if (state_loadfile(m_stateFile.toLocal8Bit().constData()) != 0) {
+		qDebug() << "An error occured whilst trying to load state from " << m_stateFile;
+	}
+}
+
+void Emulator::saveCurrentState()
+{
+	if (state_savefile(m_stateFile.toLocal8Bit().constData()) != 0) {
+		qDebug() << "An error occured whilst trying to save state to " << m_stateFile;
+	}
+}
+
 
 QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	QMainWindow(parent),
@@ -134,8 +160,14 @@ void QtGeneratorWindow::createMenu()
 
 	QMenu *fileMenu = new QMenu("&File", this);
 	QAction *openROMAction = new QAction("&Open ROM", this);
+	QAction *loadStateAction = new QAction("&Load state", this);
+	QAction *saveStateAction = new QAction("&Save state", this);
 	connect(openROMAction, SIGNAL(triggered()), SLOT(openROM()));
+	connect(loadStateAction, SIGNAL(triggered()), SLOT(loadState()));
+	connect(saveStateAction, SIGNAL(triggered()), SLOT(saveState()));
 	fileMenu->addAction(openROMAction);
+	fileMenu->addAction(loadStateAction);
+	fileMenu->addAction(saveStateAction);
 	bar->addMenu(fileMenu);
 
 	QMenu *emulationMenu = new QMenu("&Emulation", this);
@@ -383,5 +415,18 @@ void QtGeneratorWindow::openROM()
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open ROM"));
 	m_emulator->loadImage(fileName);
 	QTimer::singleShot(0, m_emulator, SLOT(start()));
+}
+
+void QtGeneratorWindow::loadState()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load state"));
+	m_emulator->loadState(fileName);
+	QTimer::singleShot(0, m_emulator, SLOT(start()));
+}
+
+void QtGeneratorWindow::saveState()
+{
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save state"));
+	m_emulator->saveState(fileName);
 }
 

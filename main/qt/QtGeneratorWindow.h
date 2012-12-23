@@ -21,8 +21,10 @@ Q_OBJECT
 public:
 	Emulator(QtGeneratorWindow *parent = 0);
 	~Emulator();
-	void loadImage(const QString &file);
 	void setArcade(bool arcade);
+	void loadImage(const QString &file);
+	void loadState(const QString &file);
+	void saveState(const QString &file);
 
 protected:
 	void run();
@@ -30,11 +32,14 @@ protected:
 private slots:
 	void renderFrame();
 	void loadCurrentImage();
+	void loadCurrentState();
+	void saveCurrentState();
 
 private:
 	QtGeneratorWindow *m_win;
 	bool m_arcade;
 	QString m_image;
+	QString m_stateFile;
 }; /* -----  end of class Emulator  ----- */
 
 
@@ -57,6 +62,8 @@ public:
 
 private slots:
 	void openROM();
+	void loadState();
+	void saveState();
 
 private:
 	QVideoFrame m_frame;
