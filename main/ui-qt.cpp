@@ -47,6 +47,9 @@ int ui_loop(void)
 int ui_init(int argc, char *argv[])
 {
 	app = new QApplication(argc, argv);
+	QApplication::setOrganizationName("Squish");
+	QApplication::setOrganizationDomain("squish.net");
+	QApplication::setApplicationName("Generator");
 	win = new QtGeneratorWindow();
 	win->show();
 	return win->uiInit(argc, argv);

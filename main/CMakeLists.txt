@@ -49,8 +49,14 @@ if (USE_QT_GUI)
 	set (GENERATOR_QT_SOURCES
 		${GENERATOR_COMMON_SOURCES}
 		ui-qt.cpp
+		qt/ConfigDialog.cpp
+		qt/ConfigDialog.h
+		qt/ConfigPanel.cpp
+		qt/ConfigPanel.h
 		qt/Icon.cpp
 		qt/Icon.h
+		qt/Panels.cpp
+		qt/Panels.h
 		qt/QtGeneratorWindow.cpp
 		qt/QtGeneratorWindow.h
 		qt/QtXvControlsWidget.cpp
@@ -58,7 +64,14 @@ if (USE_QT_GUI)
 		qt/QtXvWidget.cpp
 		qt/QtXvWidget.h
 	)
-	qt4_wrap_cpp(MOC_SOURCES qt/QtGeneratorWindow.h qt/QtXvControlsWidget.h qt/QtXvWidget.h)
+	qt4_wrap_cpp(MOC_SOURCES
+		qt/QtGeneratorWindow.h
+		qt/QtXvControlsWidget.h
+		qt/QtXvWidget.h
+		qt/ConfigDialog.h
+		qt/ConfigPanel.h
+		qt/Panels.h
+	)
 	qt4_add_resources(GENERATOR_QRC_SRCS qt/resources.qrc)
 
 	include_directories(${QT_INCLUDES} ${SOUND_INCLUDES})

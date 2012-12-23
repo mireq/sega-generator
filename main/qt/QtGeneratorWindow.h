@@ -38,6 +38,7 @@ private slots:
 private:
 	QtGeneratorWindow *m_win;
 	bool m_arcade;
+	bool m_running;
 	QString m_image;
 	QString m_stateFile;
 }; /* -----  end of class Emulator  ----- */
@@ -64,6 +65,8 @@ private slots:
 	void openROM();
 	void loadState();
 	void saveState();
+	void configure();
+	void loadSettings();
 
 private:
 	QVideoFrame m_frame;
@@ -71,6 +74,7 @@ private:
 	QtXvWidget *m_xv;
 	bool m_plotfield;
 	int m_frameskip;
+	int m_cellRenderer;
 }; /* -----  end of class QtGeneratorWindow  ----- */
 
 #endif /* end of include guard: QTGENERATORWINDOW_H_92ZLRNOU */

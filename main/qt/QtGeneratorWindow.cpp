@@ -2,10 +2,13 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
+#include <QSettings>
 #include <QTimer>
 #include <sys/time.h>
+#include "ConfigDialog.h"
 #include "QtGeneratorWindow.h"
 #include "Icon.h"
+#include "Panels.h"
 
 extern "C"
 {
@@ -43,7 +46,8 @@ static int sound_active;
 Emulator::Emulator(QtGeneratorWindow *parent):
 	QThread(parent),
 	m_win(parent),
-	m_arcade(false)
+	m_arcade(false),
+	m_running(false)
 {
 }
 
@@ -76,16 +80,8 @@ void Emulator::loadImage(const QString &file)
 
 void Emulator::run()
 {
-	if (m_image.isNull()) {
-		if (m_arcade) {
-			gen_loadmemrom(initcart, initcart_len);
-		}
-		else {
-			return;
-		}
-	}
-	else {
-		loadCurrentImage();
+	if (!m_running) {
+		return;
 	}
 	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
 	exec();
@@ -95,7 +91,9 @@ void Emulator::renderFrame()
 {
 	m_win->uiNewFrame();
 	event_doframe();
-	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
+	if (isRunning()) {
+		QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
+	}
 }
 
 void Emulator::loadCurrentImage()
@@ -106,10 +104,15 @@ void Emulator::loadCurrentImage()
 		fprintf(stderr, "%s\n", error);
 		if (m_arcade) {
 			gen_loadmemrom(initcart, initcart_len);
+			m_running = true;
 		}
 		else {
+			m_running = false;
 			return;
 		}
+	}
+	else {
+		m_running = true;
 	}
 }
 
@@ -133,7 +136,8 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	m_emulator(new Emulator(this)),
 	m_xv(new QtXvWidget(this)),
 	m_plotfield(true),
-	m_frameskip(0)
+	m_frameskip(0),
+	m_cellRenderer(0)
 {
 	m_xv->setAdaptor(m_xv->adaptors().first());
 	if (!m_xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
@@ -172,6 +176,9 @@ void QtGeneratorWindow::createMenu()
 	bar->addMenu(fileMenu);
 
 	QMenu *emulationMenu = new QMenu("&Emulation", this);
+	QAction *configureAction = new QAction(Icon("configure"), "&Configure", this);
+	connect(configureAction, SIGNAL(triggered()), SLOT(configure()));
+	emulationMenu->addAction(configureAction);
 	bar->addMenu(emulationMenu);
 }
 
@@ -351,10 +358,14 @@ void QtGeneratorWindow::uiLine(int line)
 		return;
 	}
 
-	if (line == (int)(vdp_vislines >> 1)) {
-		uiFrame();
+	if (m_cellRenderer) {
+		if (line == (int)(vdp_vislines >> 1)) {
+			uiFrame();
+		}
 	}
-	//uiSingleLine(line);
+	else {
+		uiSingleLine(line);
+	}
 }
 
 inline void QtGeneratorWindow::uiSingleLine(int line)
@@ -438,5 +449,24 @@ void QtGeneratorWindow::saveState()
 		return;
 	}
 	m_emulator->saveState(fileName);
+}
+
+void QtGeneratorWindow::configure()
+{
+	m_emulator->quit();
+	m_emulator->wait();
+	ConfigDialog dlg;
+	PerformancePanel *performancePanel = new PerformancePanel(&dlg);
+	dlg.addPanel(performancePanel);
+	dlg.exec();
+	loadSettings();
+	m_emulator->start();
+}
+
+void QtGeneratorWindow::loadSettings()
+{
+	QSettings settings;
+	m_frameskip = settings.value("frameskip", 0).toInt();
+	m_cellRenderer = settings.value("renderer", 0).toInt();
 }
 
