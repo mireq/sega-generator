@@ -6,15 +6,16 @@
 #include "QtXvControlsWidget.h"
 
 
-QtXvControlsWidget::QtXvControlsWidget(QtXvWidget *parent):
+QtXvControlsWidget::QtXvControlsWidget(QtXvWidget *widget, QWidget *parent):
 	QWidget(parent),
-	m_xv(parent)
+	m_xv(widget)
 {
 	m_layout = new QGridLayout();
 	m_mapper = new QSignalMapper(this);
 	setLayout(m_layout);
 	connect(m_xv, SIGNAL(initializedChanged()), SLOT(updateControls()));
 	connect(m_mapper, SIGNAL(mapped(const QString &)), SLOT(valueChanged(const QString &)));
+	updateControls();
 }
 
 QtXvControlsWidget::~QtXvControlsWidget()

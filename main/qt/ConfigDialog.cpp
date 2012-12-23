@@ -68,15 +68,6 @@ void ConfigDialog::closeEvent(QCloseEvent *e)
 	}
 }
 
-void ConfigDialog::showEvent(QShowEvent *e)
-{
-	Q_UNUSED(e);
-	m_currentItem = NULL;
-	m_previousItem = NULL;
-	m_panelsList->setCurrentRow(0);
-	listSelectionChanged();
-}
-
 ConfigPanel *ConfigDialog::currentPanel() const
 {
 	return static_cast<ConfigPanel *>(m_panel->currentWidget());

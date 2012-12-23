@@ -139,16 +139,7 @@ QtGeneratorWindow::QtGeneratorWindow(QWidget *parent):
 	m_frameskip(0),
 	m_cellRenderer(0)
 {
-	m_xv->setAdaptor(m_xv->adaptors().first());
-	if (!m_xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
-		if (!m_xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
-			fprintf(stderr, "No supported xv device found");
-		}
-	}
-	if (m_xv->pixelFormat() != QVideoFrame::Format_Invalid) {
-		m_frame = QVideoFrame(HMAXSIZE * VMAXSIZE * m_xv->formatInfo().bitsPerPixel, QSize(HMAXSIZE, VMAXSIZE), HMAXSIZE * 2, m_xv->pixelFormat());
-		m_frame.map(QAbstractVideoBuffer::ReadWrite);
-	}
+	loadSettings();
 	setCentralWidget(m_xv);
 	createMenu();
 }
@@ -458,6 +449,8 @@ void QtGeneratorWindow::configure()
 	ConfigDialog dlg;
 	PerformancePanel *performancePanel = new PerformancePanel(&dlg);
 	dlg.addPanel(performancePanel);
+	DisplayPanel *displayPanel = new DisplayPanel(m_xv, &dlg);
+	dlg.addPanel(displayPanel);
 	dlg.exec();
 	loadSettings();
 	m_emulator->start();
@@ -468,5 +461,28 @@ void QtGeneratorWindow::loadSettings()
 	QSettings settings;
 	m_frameskip = settings.value("frameskip", 0).toInt();
 	m_cellRenderer = settings.value("renderer", 0).toInt();
+
+	if (!m_xv->setAdaptor(settings.value("adaptor", 0).value<XvPortID>())) {
+		QtXvWidget::AdaptorList adaptorList = m_xv->adaptors();
+		bool initialized = false;
+		foreach (const QtXvWidget::AdaptorInfo &adaptorInfo, adaptorList) {
+			if (m_xv->setAdaptor(adaptorInfo)) {
+				initialized = true;
+				break;
+			}
+		}
+		if (!initialized) {
+			return;
+		}
+	}
+	if (!m_xv->setPixelFormat(QVideoFrame::Format_YUYV)) {
+		if (!m_xv->setPixelFormat(QVideoFrame::Format_UYVY)) {
+			fprintf(stderr, "No supported xv device found");
+		}
+	}
+	if (m_xv->pixelFormat() != QVideoFrame::Format_Invalid) {
+		m_frame = QVideoFrame(HMAXSIZE * VMAXSIZE * m_xv->formatInfo().bitsPerPixel, QSize(HMAXSIZE, VMAXSIZE), HMAXSIZE * 2, m_xv->pixelFormat());
+		m_frame.map(QAbstractVideoBuffer::ReadWrite);
+	}
 }
 

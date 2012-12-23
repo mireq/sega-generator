@@ -18,7 +18,6 @@ public:
 
 protected:
 	void closeEvent(QCloseEvent *e);
-	void showEvent(QShowEvent *e);
 
 private:
 	ConfigPanel *currentPanel() const;
