@@ -5,8 +5,9 @@
 #include <unistd.h>
 #include "qt/QtGeneratorWindow.h"
 
-QApplication *app = 0;
-QtGeneratorWindow *win = 0;
+static QApplication *app = 0;
+static QtGeneratorWindow *win = 0;
+static int argument_count;
 
 extern "C"
 {
@@ -46,7 +47,8 @@ int ui_loop(void)
 
 int ui_init(int argc, char *argv[])
 {
-	app = new QApplication(argc, argv);
+	argument_count = argc;
+	app = new QApplication(argument_count, argv);
 	QApplication::setOrganizationName("Squish");
 	QApplication::setOrganizationDomain("squish.net");
 	QApplication::setApplicationName("Generator");
