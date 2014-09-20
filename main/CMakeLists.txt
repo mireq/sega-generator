@@ -92,6 +92,34 @@ if (USE_QT_GUI)
 	)
 endif (USE_QT_GUI)
 
+if (USE_QML_GUI)
+	set (GENERATOR_QT_SOURCES
+		${GENERATOR_COMMON_SOURCES}
+		ui-qml.cpp
+		qml/QmlGeneratorWindow.cpp
+		qml/QmlGeneratorWindow.h
+		qml/EmulatorItem.cpp
+		qml/EmulatorItem.h
+	)
+	qt5_wrap_cpp(MOC_SOURCES
+		qml/QmlGeneratorWindow.h
+		qml/EmulatorItem.h
+	)
+	qt5_add_resources(GENERATOR_QRC_SRCS qml/resources.qrc)
+
+	include_directories(${QT_INCLUDES} ${SOUND_INCLUDES})
+	add_executable(generator-qml ${GENERATOR_QT_SOURCES} ${MOC_SOURCES} ${GENERATOR_QRC_SRCS})
+	qt5_use_modules(generator-qml Quick)
+	target_link_libraries(generator-qml
+		${Z80_LIB}
+		${SOUND_LIBS}
+		${CMAKE_BINARY_DIR}/cpu68k/lib68k.3.a
+		${CMAKE_BINARY_DIR}/sn76496/libsn76496.a
+		${CMAKE_BINARY_DIR}/ym2612/libym6212.a
+		m
+	)
+endif (USE_QML_GUI)
+
 if (USE_LGTV_GUI)
 	set (GENERATOR_LG_SOURCES
 		${GENERATOR_COMMON_SOURCES}
