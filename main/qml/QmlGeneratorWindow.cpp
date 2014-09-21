@@ -117,20 +117,18 @@ QmlGeneratorWindow::QmlGeneratorWindow(QWindow *parent):
 	QQuickView(parent),
 	m_emulator(new Emulator(this)),
 	m_plotfield(true),
-	m_frameskip(0)
+	m_frameskip(1)
 {
 	m_gfx = new uint8[(320 + 16) * (240 + 16)];
-	m_screen = new uint32[(320 + 16) * (240 + 16)];
 	resize(800, 480);
 	setColor("#000000");
 	setResizeMode(QQuickView::SizeRootObjectToView);
-	setSource(QUrl("/home/mirec/Documents/Moje/Programy/generator/sega-generator/main/qml/ui/main.qml"));
+	setSource(QUrl("ui/main.qml"));
 }
 
 QmlGeneratorWindow::~QmlGeneratorWindow()
 {
 	delete[] m_gfx;
-	delete[] m_screen;
 }
 
 void QmlGeneratorWindow::uiLine(int line)
@@ -146,9 +144,8 @@ void QmlGeneratorWindow::uiLine(int line)
 	unsigned int width = (vdp_reg[12] & 1) ? 320 : 256;
 	unsigned int offset = HBORDER_DEFAULT + ((vdp_reg[12] & 1) ? 0 : 32);
 
-	uiplot_checkpalcache(0);
 	vdp_renderframe(m_gfx + (8 * (320 + 16)) + 8, 320 + 16);
-	uiplot_convertdata32(m_gfx, m_screen, (320 + 16) * (240 + 16));
+	emit frameFinished();
 }
 
 void QmlGeneratorWindow::uiEndField()
@@ -160,10 +157,6 @@ void QmlGeneratorWindow::uiEndField()
 	int max_wait;
 
 	gettimeofday(&tv, NULL);
-
-	if (m_plotfield) {
-		emit frameFinished();
-	}
 
 	if (m_frameskip == 0) {
 		/* dynamic frame skipping */
@@ -332,10 +325,5 @@ void QmlGeneratorWindow::uiMusiclog(uint8 *data, unsigned int length)
 const uint8 *QmlGeneratorWindow::gfx() const
 {
 	return m_gfx;
-}
-
-const uint32 *QmlGeneratorWindow::screen() const
-{
-	return m_screen;
 }
 

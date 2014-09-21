@@ -67,7 +67,6 @@ public:
 	void uiUsage();
 	void uiMusiclog(uint8 *data, unsigned int length);
 	const uint8 *gfx() const;
-	const uint32 *screen() const;
 
 signals:
 	void frameFinished();
@@ -75,7 +74,6 @@ signals:
 private:
 	Emulator *m_emulator;
 	uint8 *m_gfx;
-	uint32 *m_screen;
 	bool m_plotfield;
 	int m_frameskip;
 

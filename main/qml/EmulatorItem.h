@@ -22,6 +22,7 @@ private slots:
 private:
 	QSGTexture *m_texture;
 	GLubyte *m_gfx;
+	GLuint *m_screen;
 }; /* -----  end of class EmulatorItem  ----- */
 
 
