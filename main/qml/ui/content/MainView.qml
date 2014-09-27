@@ -1,33 +1,17 @@
 import QtQuick 2.0
+import QtGraphicalEffects 1.0
+import "../../../../../../../games"
 
 Item {
 	id: root
 
+	property real blurAmount: 0
+
+	function scheduleUpdate() {
+		mainContentSource.scheduleUpdate();
+	}
+
 	anchors.fill: parent
-
-	Image {
-		id: background
-		anchors.fill: parent
-		fillMode: Image.PreserveAspectCrop
-	}
-
-	Component {
-		id: imageFadeComponent
-		Image {
-			id: fadeImage
-			anchors.fill: parent;
-			fillMode: Image.PreserveAspectCrop
-			NumberAnimation on opacity {
-				from: 1
-				to: 0
-				onRunningChanged: {
-					if (!running) {
-						fadeImage.destroy();
-					}
-				}
-			}
-		}
-	}
 
 	ListView {
 		id: gameList
@@ -35,24 +19,21 @@ Item {
 		orientation: Qt.Horizontal
 		snapMode: ListView.SnapOneItem
 		highlightRangeMode: ListView.StrictlyEnforceRange
-		z: 1
-		model: ListModel {
-			ListElement {
-				title: "Demo"
-				backgroundImage: "/home/mirec/background3.png"
-			}
-			ListElement {
-				title: "Sonic"
-				backgroundImage: "/home/mirec/Preberanie/62233.jpg"
-			}
-		}
+		model: GamesList {}
 		delegate: GameDelegate {}
-		onCurrentIndexChanged: {
-			if (background.source != "") {
-				var image = imageFadeComponent.createObject(root, {});
-				image.source = background.source;
-			}
-			background.source = currentItem.backgroundImage;
+	}
+
+	FastBlur {
+		anchors.fill: gameList
+		radius: root.blurAmount
+		visible: root.blurAmount
+		source: ShaderEffectSource {
+			id: mainContentSource
+			anchors.fill: parent
+			sourceItem: gameList
+			hideSource: false
+			live: false
+			visible: root.blurAmount
 		}
 	}
 }

@@ -1,6 +1,8 @@
 #include "QmlGeneratorWindow.h"
 #include <QDebug>
 #include <QTimer>
+#include <QQmlContext>
+#include <QQmlEngine>
 #include <QUrl>
 #include <sys/time.h>
 
@@ -69,17 +71,18 @@ void Emulator::run()
 	if (!m_running) {
 		return;
 	}
-	QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
-	exec();
+	while (true) {
+		if (!m_running) {
+			return;
+		}
+		this->renderFrame();
+	}
 }
 
 void Emulator::renderFrame()
 {
 	m_win->uiNewFrame();
 	event_doframe();
-	if (isRunning()) {
-		QMetaObject::invokeMethod(this, "renderFrame", Qt::QueuedConnection);
-	}
 }
 
 void Emulator::loadCurrentImage()
@@ -87,6 +90,7 @@ void Emulator::loadCurrentImage()
 	if (m_arcade && m_image.isEmpty()) {
 		gen_loadmemrom(initcart, initcart_len);
 		m_running = true;
+		QTimer::singleShot(0, this, SLOT(start()));
 		return;
 	}
 
@@ -97,6 +101,7 @@ void Emulator::loadCurrentImage()
 		if (m_arcade) {
 			gen_loadmemrom(initcart, initcart_len);
 			m_running = true;
+			QTimer::singleShot(0, this, SLOT(start()));
 		}
 		else {
 			m_running = false;
@@ -105,6 +110,7 @@ void Emulator::loadCurrentImage()
 	}
 	else {
 		m_running = true;
+		QTimer::singleShot(0, this, SLOT(start()));
 	}
 }
 
@@ -122,6 +128,12 @@ void Emulator::saveCurrentState()
 	}
 }
 
+void Emulator::stop()
+{
+	m_running = false;
+	wait();
+}
+
 
 
 QmlGeneratorWindow::QmlGeneratorWindow(QWindow *parent):
@@ -134,11 +146,13 @@ QmlGeneratorWindow::QmlGeneratorWindow(QWindow *parent):
 	resize(800, 480);
 	setColor("#000000");
 	setResizeMode(QQuickView::SizeRootObjectToView);
+	engine()->rootContext()->setContextProperty("app", this);
 	setSource(QUrl("ui/main.qml"));
 }
 
 QmlGeneratorWindow::~QmlGeneratorWindow()
 {
+	m_emulator->stop();
 	delete[] m_gfx;
 }
 
@@ -315,8 +329,6 @@ int QmlGeneratorWindow::uiInit(int argc, char *argv[])
 
 	uiplot_setshifts(3, 11, 19);
 
-	QTimer::singleShot(0, m_emulator, SLOT(start()));
-
 	return 0;
 }
 
@@ -339,5 +351,17 @@ void QmlGeneratorWindow::uiMusiclog(uint8 *data, unsigned int length)
 const uint8 *QmlGeneratorWindow::gfx() const
 {
 	return m_gfx;
+}
+
+void QmlGeneratorWindow::startGame(const QString &filename)
+{
+	m_emulator->stop();
+	m_emulator->loadImage(filename);
+	m_emulator->start();
+}
+
+void QmlGeneratorWindow::stopGame()
+{
+	m_emulator->stop();
 }
 

@@ -34,6 +34,7 @@ public:
 	void loadImage(const QString &file);
 	void loadState(const QString &file);
 	void saveState(const QString &file);
+	void stop();
 
 	bool arcade() const;
 
@@ -69,6 +70,10 @@ public:
 	void uiUsage();
 	void uiMusiclog(uint8 *data, unsigned int length);
 	const uint8 *gfx() const;
+
+public slots:
+	void startGame(const QString &filename);
+	void stopGame();
 
 signals:
 	void frameFinished();

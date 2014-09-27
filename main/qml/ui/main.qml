@@ -25,13 +25,7 @@ Rectangle {
 		id: mainView
 	}
 
-	/*
 	EmulatorView {
 		id: emulatorView
 	}
-	EmulatorItem {
-		id: emulator
-		width: 640; height: 448
-	}
-	*/
 }
