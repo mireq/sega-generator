@@ -3,6 +3,7 @@
 
 #include <QQuickItem>
 #include <QSGTexture>
+#include <QtGui/QOpenGLFunctions>
 #include "QmlGeneratorWindow.h"
 
 
@@ -21,8 +22,9 @@ private slots:
 
 private:
 	QSGTexture *m_texture;
-	GLubyte *m_gfx;
 	GLuint *m_screen;
+
+	QOpenGLFunctions *m_gl;
 }; /* -----  end of class EmulatorItem  ----- */
 
 
