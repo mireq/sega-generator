@@ -35,6 +35,8 @@ public:
 	void loadState(const QString &file);
 	void saveState(const QString &file);
 
+	bool arcade() const;
+
 protected:
 	void run();
 

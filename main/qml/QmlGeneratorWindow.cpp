@@ -53,6 +53,11 @@ void Emulator::saveState(const QString &file)
 	QMetaObject::invokeMethod(this, "saveCurrentState", Qt::QueuedConnection);
 }
 
+bool Emulator::arcade() const
+{
+	return m_arcade;
+}
+
 void Emulator::loadImage(const QString &file)
 {
 	m_image = file;
@@ -79,6 +84,12 @@ void Emulator::renderFrame()
 
 void Emulator::loadCurrentImage()
 {
+	if (m_arcade && m_image.isEmpty()) {
+		gen_loadmemrom(initcart, initcart_len);
+		m_running = true;
+		return;
+	}
+
 	char *error = gen_loadimage(m_image.toLocal8Bit().constData());
 	if (error) {
 		m_image = QString();
@@ -292,6 +303,9 @@ int QmlGeneratorWindow::uiInit(int argc, char *argv[])
 		m_emulator->loadImage(argv[0]);
 		argc--;
 		argv++;
+	}
+	else if (m_emulator->arcade()) {
+		m_emulator->loadImage("");
 	}
 
 	if (argc > 0) {
