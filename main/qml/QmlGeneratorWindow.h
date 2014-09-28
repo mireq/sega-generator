@@ -101,6 +101,7 @@ private:
 	uint8 *m_gfx;
 	bool m_plotfield;
 	int m_frameskip;
+	QString m_filename;
 	ControllerKeys m_pad[2];
 
 }; /* -----  end of class QmlGeneratorWindow  ----- */

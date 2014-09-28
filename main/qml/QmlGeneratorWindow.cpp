@@ -374,14 +374,17 @@ void QmlGeneratorWindow::keyReleaseEvent(QKeyEvent *event)
 
 void QmlGeneratorWindow::startGame(const QString &filename)
 {
+	m_filename = filename;
 	m_emulator->stop();
-	m_emulator->loadImage(filename);
+	m_emulator->loadImage(m_filename);
 	m_emulator->start();
+	m_emulator->loadState(m_filename + ".sav");
 }
 
 void QmlGeneratorWindow::stopGame()
 {
 	m_emulator->stop();
+	m_emulator->saveState(m_filename + ".sav");
 }
 
 void QmlGeneratorWindow::setupKeyboard()
