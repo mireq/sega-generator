@@ -60,6 +60,16 @@ class QmlGeneratorWindow: public QQuickView
 {
 Q_OBJECT
 public:
+	struct ControllerKeys {
+		int aKey;
+		int bKey;
+		int cKey;
+		int leftKey;
+		int rightKey;
+		int upKey;
+		int downKey;
+		int startKey;
+	};
 	QmlGeneratorWindow(QWindow *parent = 0);
 	~QmlGeneratorWindow();
 
@@ -71,6 +81,10 @@ public:
 	void uiMusiclog(uint8 *data, unsigned int length);
 	const uint8 *gfx() const;
 
+protected:
+	void keyPressEvent(QKeyEvent *event);
+	void keyReleaseEvent(QKeyEvent *event);
+
 public slots:
 	void startGame(const QString &filename);
 	void stopGame();
@@ -79,10 +93,15 @@ signals:
 	void frameFinished();
 
 private:
+	void setupKeyboard();
+	void setKey(int key, int value);
+
+private:
 	Emulator *m_emulator;
 	uint8 *m_gfx;
 	bool m_plotfield;
 	int m_frameskip;
+	ControllerKeys m_pad[2];
 
 }; /* -----  end of class QmlGeneratorWindow  ----- */
 
