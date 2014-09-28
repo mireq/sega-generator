@@ -1,8 +1,7 @@
 import QtQuick 2.0
 import "content"
-//import generator 1.0
 
-Rectangle {
+Item {
 	id: mainWindow
 
 	width: 800; height: 480

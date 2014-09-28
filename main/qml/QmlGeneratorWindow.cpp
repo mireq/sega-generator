@@ -142,9 +142,9 @@ QmlGeneratorWindow::QmlGeneratorWindow(QWindow *parent):
 	m_plotfield(true),
 	m_frameskip(1)
 {
+	setColor("#000000");
 	m_gfx = new uint8[(320 + 16) * (240 + 16)];
 	resize(800, 480);
-	setColor("#000000");
 	setResizeMode(QQuickView::SizeRootObjectToView);
 	engine()->rootContext()->setContextProperty("app", this);
 	setSource(QUrl("ui/main.qml"));
