@@ -116,7 +116,7 @@ unsigned int reg68k_external_execute(unsigned int clocks)
         while (list && (list->pc != pc24)) {
           list = list->next;
         }
-#ifdef PROCESSOR_ARM
+#ifdef PROCESSOR_ARM_JIT
         if (!list) {
           list = cpu68k_makeipclist(pc24);
           list->next = ipclist[index];
